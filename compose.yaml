@@ -6,7 +6,7 @@ services:
       context: user_activity_events_source
       dockerfile: dockerfile
     environment:
-      output: user_activity
+      output: user_activities
       Quix__Broker__Address: kafka-broker:9092
   user_purchases_events_source:
     volumes:

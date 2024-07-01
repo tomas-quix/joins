@@ -19,7 +19,7 @@ deployments:
         inputType: OutputTopic
         description: Name of the output topic to write into
         required: true
-        value: user_activity
+        value: user_activities
   - name: user_purchases_events_source
     application: user_purchases_events_source
     version: latest
@@ -94,7 +94,6 @@ deployments:
 
 # This section describes the Topics of the data pipeline
 topics:
-  - name: user_activity
   - name: user_purchases
   - name: user_activities
   - name: pre-join
