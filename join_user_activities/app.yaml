@@ -1,0 +1,16 @@
+name: join_user_activities
+language: Python
+variables:
+  - name: input
+    inputType: InputTopic
+    description: Name of the input topic to listen to.
+    defaultValue: user_activities
+    required: false
+  - name: output
+    inputType: OutputTopic
+    description: Name of the output topic to write to.
+    defaultValue: pre-join
+    required: false
+dockerfile: dockerfile
+runEntryPoint: main.py
+defaultFile: main.py
