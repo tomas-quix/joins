@@ -7,7 +7,7 @@ load_dotenv()
 
 from datetime import timedelta
 
-app = Application(consumer_group="join-v1", auto_offset_reset="earliest")
+app = Application(consumer_group="join-v1.4", auto_offset_reset="earliest")
 
 input_topic = app.topic(os.environ["input"])
 output_topic = app.topic(os.environ["output"])
@@ -16,8 +16,13 @@ sdf = app.dataframe(input_topic)
 
 def reduce_window(state: dict, row: dict):
     
+    if "activity_type" in row:
+        return{
+            **row,
+            "purchases_sum": state["purchases_sum"] 
+        }
+    
     return {
-        **state,
         "purchases_sum": state["purchases_sum"] + row["purchase_amount"]
     }
     
@@ -35,7 +40,14 @@ def init_window(row: dict):
 
 sdf = sdf.hopping_window(timedelta(minutes=10), timedelta(minutes=1), 5000) \
     .reduce(reduce_window, init_window) \
-    .final()
+    .current()
+
+
+sdf = sdf.apply(lambda row: row["value"])
+
+sdf = sdf[sdf.contains("activity_type")]
+
+sdf = sdf.set_timestamp(lambda row, *_: row["timestamp"])
 
 sdf = sdf.update(lambda row: print(row))
 
