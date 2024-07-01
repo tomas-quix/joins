@@ -14,6 +14,8 @@ output_topic = app.topic(os.environ["output"])
 
 sdf = app.dataframe(input_topic)
 
+sdf = sdf.group_by(lambda row: str(row["user_id"]), "user_id")
+
 def reduce_window(state: dict, row: dict):
     
     if "activity_type" in row:
