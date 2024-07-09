@@ -1,22 +1,4 @@
 services:
-  user_activity_events_source:
-    volumes:
-      - /dev/null:/app/.env
-    build:
-      context: user_activity_events_source
-      dockerfile: dockerfile
-    environment:
-      output: user_activities
-      Quix__Broker__Address: kafka-broker:9092
-  user_purchases_events_source:
-    volumes:
-      - /dev/null:/app/.env
-    build:
-      context: user_purchases_events_source
-      dockerfile: dockerfile
-    environment:
-      output: user_purchases
-      Quix__Broker__Address: kafka-broker:9092
   join:
     volumes:
       - /dev/null:/app/.env
@@ -27,25 +9,45 @@ services:
       input: pre-join
       output: joined
       Quix__Broker__Address: kafka-broker:9092
-  join_user_purchases:
+  mbr_forward:
     volumes:
       - /dev/null:/app/.env
     build:
-      context: join_user_purchases
+      context: topic_forwarder
       dockerfile: dockerfile
     environment:
-      input: user_purchases
+      input: mbr
       output: pre-join
       Quix__Broker__Address: kafka-broker:9092
-  join_user_activities:
+  mbr_enc_forward:
     volumes:
       - /dev/null:/app/.env
     build:
-      context: join_user_activities
+      context: topic_forwarder
       dockerfile: dockerfile
     environment:
-      input: user_activities
+      input: mbr_enc
       output: pre-join
+      Quix__Broker__Address: kafka-broker:9092
+  mbr_replay:
+    volumes:
+      - /dev/null:/app/.env
+    build:
+      context: json-replay
+      dockerfile: dockerfile
+    environment:
+      output: mbr
+      file: poc.dbo.mbr.txt
+      Quix__Broker__Address: kafka-broker:9092
+  mbr_enc_replay:
+    volumes:
+      - /dev/null:/app/.env
+    build:
+      context: json-replay
+      dockerfile: dockerfile
+    environment:
+      output: mbr_enc
+      file: poc.dbo.mbr_enc.txt
       Quix__Broker__Address: kafka-broker:9092
   kafka-broker:
     image: docker.redpanda.com/redpandadata/redpanda:v24.1.1

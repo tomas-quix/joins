@@ -6,34 +6,6 @@ metadata:
 
 # This section describes the Deployments of the data pipeline
 deployments:
-  - name: user_activity_events_source
-    application: user_activity_events_source
-    version: latest
-    deploymentType: Service
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    variables:
-      - name: output
-        inputType: OutputTopic
-        description: Name of the output topic to write into
-        required: true
-        value: user_activities
-  - name: user_purchases_events_source
-    application: user_purchases_events_source
-    version: latest
-    deploymentType: Service
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    variables:
-      - name: output
-        inputType: OutputTopic
-        description: Name of the output topic to write into
-        required: true
-        value: user_purchases
   - name: join
     application: join
     version: latest
@@ -53,8 +25,8 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: joined
-  - name: join_user_purchases
-    application: join_user_purchases
+  - name: mbr_forward
+    application: topic_forwarder
     version: latest
     deploymentType: Service
     resources:
@@ -66,14 +38,14 @@ deployments:
         inputType: InputTopic
         description: Name of the input topic to listen to.
         required: false
-        value: user_purchases
+        value: mbr
       - name: output
         inputType: OutputTopic
         description: Name of the output topic to write to.
         required: false
         value: pre-join
-  - name: join_user_activities
-    application: join_user_activities
+  - name: mbr_enc_forward
+    application: topic_forwarder
     version: latest
     deploymentType: Service
     resources:
@@ -85,12 +57,50 @@ deployments:
         inputType: InputTopic
         description: Name of the input topic to listen to.
         required: false
-        value: user_activities
+        value: mbr_enc
       - name: output
         inputType: OutputTopic
         description: Name of the output topic to write to.
         required: false
         value: pre-join
+  - name: mbr_replay
+    application: json-replay
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to write into
+        required: true
+        value: mbr
+      - name: file
+        inputType: FreeText
+        description: Name of the file to ingest.
+        required: true
+        value: poc.dbo.mbr.txt
+  - name: mbr_enc_replay
+    application: json-replay
+    version: latest
+    deploymentType: Service
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to write into
+        required: true
+        value: mbr_enc
+      - name: file
+        inputType: FreeText
+        description: Name of the file to ingest.
+        required: true
+        value: poc.dbo.mbr_enc.txt
 
 # This section describes the Topics of the data pipeline
 topics:
@@ -98,3 +108,4 @@ topics:
   - name: user_activities
   - name: pre-join
   - name: joined
+  - name: user_activity

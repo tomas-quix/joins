@@ -7,49 +7,37 @@ load_dotenv()
 
 from datetime import timedelta
 
-app = Application(consumer_group="join-v1.4", auto_offset_reset="earliest")
+app = Application(consumer_group="join-v1.9", auto_offset_reset="earliest")
 
 input_topic = app.topic(os.environ["input"])
 output_topic = app.topic(os.environ["output"])
 
 sdf = app.dataframe(input_topic)
 
-sdf = sdf.group_by(lambda row: str(row["user_id"]), "user_id")
+#sdf = sdf.group_by(lambda row: (row["user_id"]), "user_id")
 
 def reduce_window(state: dict, row: dict):
+    state = {**state, **row["after"]}
+    return state
     
-    if "activity_type" in row:
-        return{
-            **row,
-            "purchases_sum": state["purchases_sum"] 
-        }
-    
-    return {
-        "purchases_sum": state["purchases_sum"] + row["purchase_amount"]
-    }
     
 def init_window(row: dict):
-    
-    if "purchases_sum" in row:
-        return {
-            "purchases_sum": row["purchases_sum"]
-        }
-    
-    return {
-        **row,
-        "purchases_sum": 0
-    }
+    return row["after"]
 
-sdf = sdf.hopping_window(timedelta(minutes=10), timedelta(minutes=1), 5000) \
+sdf = sdf[sdf.contains("after") & sdf["after"].notnull()]
+
+
+sdf = sdf.hopping_window(timedelta(hours=1), timedelta(minutes=1), timedelta(hours=1)) \
     .reduce(reduce_window, init_window) \
     .current()
-
-
+    
 sdf = sdf.apply(lambda row: row["value"])
+    
 
-sdf = sdf[sdf.contains("activity_type")]
 
-sdf = sdf.set_timestamp(lambda row, *_: row["timestamp"])
+
+# Filter items that are already joined.
+sdf = sdf[sdf.contains("enc_idn") & sdf.contains("mbr_first_name")]
 
 sdf = sdf.update(lambda row: print(row))
 

@@ -1,10 +1,15 @@
-name: user_purchases_events_source
+name: json-replay
 language: Python
 variables:
   - name: output
     inputType: OutputTopic
     description: Name of the output topic to write into
-    defaultValue: user_purchases
+    defaultValue:
+    required: true
+  - name: file
+    inputType: FreeText
+    description: Name of the file to ingest.
+    defaultValue:
     required: true
 dockerfile: dockerfile
 runEntryPoint: main.py
